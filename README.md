@@ -1,82 +1,89 @@
 # QuickBook
 
-Backend for an event booking platform: REST APIs (Django REST Framework, token
-auth), a binary referral network, and a custom staff dashboard (regular Django
-views and templates, Bootstrap 5). Django's built-in admin is **not** used.
+This is the backend for an event booking app. Users can browse events, book tickets and cancel them. There is also a referral system where each user gets placed in a binary tree under the person who referred them, and a small dashboard for staff.
 
-## Stack
-Python 3.12+ · Django 6.1 · Django REST Framework · SQLite · drf-spectacular · django-filter
+The API is built with Django REST Framework and uses token authentication. The staff dashboard is made with normal Django views, templates and Bootstrap 5. I did not use the Django admin.
 
-## Local setup
+Made with Python 3.12+, Django 6.1, Django REST Framework, SQLite, drf-spectacular and django-filter.
+
+## How to run it locally
+
+You need Python 3.12 or newer installed.
+
+1. Create a virtual environment and activate it
 
 ```bash
-# 1. Create and activate a virtual environment
 python -m venv venv
-venv\Scripts\activate            # Windows
-# source venv/bin/activate       # macOS / Linux
+venv\Scripts\activate
+```
 
-# 2. Install dependencies
+On macOS or Linux use `source venv/bin/activate` for the second line.
+
+2. Install the requirements
+
+```bash
 pip install -r requirements.txt
+```
 
-# 3. Create the database
+3. Create the database
+
+```bash
 python manage.py migrate
+```
 
-# 4. Create a staff user (needed for the dashboard)
+4. Create a staff user. You need this to log in to the dashboard, because the dashboard only allows users with `is_staff=True` and `createsuperuser` sets that.
+
+```bash
 python manage.py createsuperuser
+```
 
-# 5. Run the server
+5. Start the server
+
+```bash
 python manage.py runserver
 ```
 
-`createsuperuser` sets `is_staff=True`, which is what the dashboard checks.
+Now open:
 
-### Demo data (optional)
+- Swagger docs: http://127.0.0.1:8000/api/docs/
+- OpenAPI schema: http://127.0.0.1:8000/api/schema/
+- Staff dashboard: http://127.0.0.1:8000/dashboard/ (the login page is `/dashboard/login/`)
+
+If you are not logged in, the dashboard redirects you to the login page. If you are logged in but not staff, you get a 403.
+
+## Demo data
+
+If you want some data to play with, run this after migrating:
 
 ```bash
 python manage.py seed_demo
 ```
 
-Creates 8 customers in two referral trees (`alice` is the root of the larger
-one), 3 vendors, 6 events across Kerala districts and a few bookings,
-including a sold-out event and a cancelled booking. Customers log in with their
-username and the password `Demo@12345`. Safe to run more than once.
+It creates 8 customers in two referral trees (`alice` is the root of the bigger one), 3 vendors, 6 events in different districts of Kerala, and a few bookings. One event is sold out and one booking is cancelled. All the demo customers use the password `Demo@12345` with their username. You can run it more than once without getting duplicates.
 
-## Where things are
+## API endpoints
 
-| What | URL |
-| --- | --- |
-| Swagger UI | http://127.0.0.1:8000/api/docs/ |
-| OpenAPI schema | http://127.0.0.1:8000/api/schema/ |
-| Staff dashboard | http://127.0.0.1:8000/dashboard/ (login at `/dashboard/login/`) |
+Every endpoint except register and login needs an `Authorization: Token <key>` header. You get the key when you log in.
 
-The dashboard is staff-only: anonymous visitors are redirected to the login
-page, and signed-in non-staff users get a 403.
-
-## API overview
-
-All endpoints except register/login require the header
-`Authorization: Token <key>`.
-
-| Method | Route | Purpose |
+| Method | Endpoint | What it does |
 | --- | --- | --- |
-| POST | `/api/auth/register/` | Register (optional `referral_code`) |
-| POST | `/api/auth/login/` | Log in, returns token |
-| POST | `/api/auth/logout/` | Log out (deletes token) |
-| GET | `/api/events/` | Browse events. `?search=`, `?vendor=`, `?min_price=`, `?max_price=`, `?date_from=`, `?date_to=`, `?available=true`, `?ordering=` |
-| GET | `/api/events/<id>/` | Event details |
-| POST | `/api/bookings/` | Book tickets: `{"event": 1, "quantity": 2}` |
-| GET | `/api/bookings/` | Your booking history (`?status=`) |
+| POST | `/api/auth/register/` | Register a user (`referral_code` is optional) |
+| POST | `/api/auth/login/` | Log in and get a token |
+| POST | `/api/auth/logout/` | Log out, deletes the token |
+| GET | `/api/events/` | List events |
+| GET | `/api/events/<id>/` | Get one event |
+| POST | `/api/bookings/` | Book tickets, body like `{"event": 1, "quantity": 2}` |
+| GET | `/api/bookings/` | Your bookings |
 | POST | `/api/bookings/<id>/cancel/` | Cancel a booking |
-| GET | `/api/referrals/<user_id>/tree/` | Nested tree (`?depth=`, default 3, max 10) |
+| GET | `/api/referrals/<user_id>/tree/` | Referral tree (`?depth=`, default 3, max 10) |
 | GET | `/api/referrals/<user_id>/root/` | Root user of the tree |
-| GET | `/api/referrals/<user_id>/stats/` | Left / right / total team counts |
+| GET | `/api/referrals/<user_id>/stats/` | Left, right and total team count |
 
-Errors use a consistent body: `{"detail": "...", "code": "..."}` (validation
-errors use DRF's per-field format). Status codes: 400 invalid input, 401
-unauthenticated, 404 not found, 409 conflict (not enough seats, already
-cancelled), 429 throttled.
+The events list can be filtered with `?search=`, `?vendor=`, `?min_price=`, `?max_price=`, `?date_from=`, `?date_to=`, `?available=true` and `?ordering=`. The bookings list can be filtered with `?status=`.
 
-Example:
+Errors look like `{"detail": "...", "code": "..."}`, except validation errors, which use the normal DRF format per field. Status codes: 400 bad input, 401 not logged in, 404 not found, 409 conflict (not enough seats or already cancelled), 429 too many requests.
+
+Example request:
 
 ```bash
 curl -X POST http://127.0.0.1:8000/api/auth/register/ \
@@ -84,43 +91,33 @@ curl -X POST http://127.0.0.1:8000/api/auth/register/ \
   -d '{"username":"alice","email":"alice@example.com","password":"Str0ng-pass!"}'
 ```
 
-## Project structure
+## Project folders
 
 ```
-config/      settings, root URLs, shared exceptions + DRF exception handler
-accounts/    custom User (referral fields), auth API
-events/      Vendor and Event models, public event API
-bookings/    Booking model, booking API, services.py (seat logic)
-referrals/   binary tree placement, tree/root/stats, services.py, API
-dashboard/   staff dashboard views, forms, templates
+config/      settings, main urls, exception handler
+accounts/    custom user model and auth API
+events/      Vendor and Event models, event API
+bookings/    Booking model, booking API, seat logic in services.py
+referrals/   tree placement, tree/root/stats API
+dashboard/   staff dashboard (views, forms, templates)
 ```
 
-Business logic lives in each app's `services.py`; views only validate input,
-call a service, and shape the response.
+The main logic is in the `services.py` file of each app. The views only check the input, call the service and return the response.
 
-## Design notes
+## Some notes on how it works
 
-- **No overselling.** `book_tickets` and `cancel_booking` run inside
-  `transaction.atomic()` and lock the event row with `select_for_update()`.
-  SQLite ignores row locks but serialises writers, so this is safe there too,
-  and it stays correct if you move to PostgreSQL. DB check constraints
-  (`available_seats <= total_seats`, quantity >= 1) are a second safety net.
-- **Referral placement.** A new user is placed in the first free slot found by
-  a level-by-level (BFS) search from the referrer, left before right. A unique
-  `(parent, position)` constraint guarantees a node never gets two children
-  on one side; a lost race is retried automatically. `referrer` (who invited
-  the user) and `parent` (where they sit in the tree) are stored separately.
-- **Rate limiting.** DRF throttling: 100/hour anonymous, 1000/hour
-  authenticated, 10/minute on login and register.
-- **Vendors** are plain records managed by staff, not login accounts. A vendor
-  with events cannot be deleted (deactivate it instead).
+Overselling: booking and cancelling run inside `transaction.atomic()` and lock the event row using `select_for_update()`. SQLite ignores row locks but only allows one writer at a time, so it is still safe, and it will also work if you switch to PostgreSQL. I also added database constraints (`available_seats <= total_seats` and quantity at least 1) in case something goes wrong in the code.
 
-## Tests
+Referral tree: a new user goes into the first free spot found by searching level by level (BFS) from the referrer, left side first. There is a unique constraint on `(parent, position)` so a node can never get two children on the same side. If two signups clash, one of them is retried automatically. `referrer` (who invited the user) and `parent` (where the user sits in the tree) are saved separately.
+
+Rate limits: 100 requests per hour for anonymous users, 1000 per hour for logged in users, and 10 per minute for login and register.
+
+Vendors are just records that staff manage, they cannot log in. A vendor that has events cannot be deleted, you have to deactivate it.
+
+## Running the tests
 
 ```bash
 python manage.py test
 ```
 
-Covers seat accuracy, concurrent booking (threads), invalid booking/cancel
-cases, referral placement (left, right, BFS), tree/root/stats endpoints, and
-dashboard access control.
+The tests check seat counts, booking from multiple threads at the same time, invalid booking and cancel requests, referral placement (left, right and BFS order), the tree/root/stats endpoints and access to the dashboard.

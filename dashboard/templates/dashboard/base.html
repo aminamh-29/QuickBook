@@ -6,13 +6,113 @@
   <title>{% block title %}Dashboard{% endblock %} · QuickBook</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
-    .tree ul { list-style: none; padding-left: 1.25rem; border-left: 2px solid #dee2e6; margin-left: .5rem; }
+    :root {
+      --qb-red: #e11d2e;
+      --qb-red-deep: #7a0a14;
+      --qb-black: #0b0506;
+      --qb-glass: rgba(255, 255, 255, .07);
+      --qb-glass-strong: rgba(20, 8, 10, .55);
+      --qb-border: rgba(255, 255, 255, .16);
+      --bs-body-font-family: "Poppins", system-ui, sans-serif;
+      --bs-primary: var(--qb-red);
+      --bs-primary-rgb: 225, 29, 46;
+      --bs-link-color: #ff6b76;
+      --bs-link-hover-color: #fff;
+    }
+    body {
+      min-height: 100vh;
+      color: #fff;
+      background-color: var(--qb-black);
+      background-image:
+        radial-gradient(70% 55% at 50% -10%, #000 0%, transparent 70%),
+        radial-gradient(90% 70% at 50% 115%, var(--qb-red) 0%, transparent 65%),
+        radial-gradient(60% 60% at 100% 40%, var(--qb-red-deep) 0%, transparent 70%),
+        radial-gradient(60% 60% at 0% 60%, var(--qb-red-deep) 0%, transparent 70%);
+      background-attachment: fixed;
+    }
+    h1, h2, h3, .h1, .h2, .h3, .h4 { font-weight: 700; letter-spacing: -.02em; }
+    .text-muted, .form-text { color: rgba(255, 255, 255, .6) !important; }
+
+    /* glass surfaces */
+    .navbar {
+      background: var(--qb-glass-strong) !important;
+      backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+      border-bottom: 1px solid var(--qb-border);
+    }
+    .navbar-brand { font-weight: 700; letter-spacing: -.02em; }
+    .navbar-brand::before { content: ""; display: inline-block; width: .6em; height: .6em; margin-right: .5em;
+      border-radius: 50%; background: var(--qb-red); box-shadow: 0 0 12px var(--qb-red); }
+    .nav-link { color: rgba(255,255,255,.75) !important; }
+    .nav-link:hover { color: #fff !important; }
+    .card, .modal-content, .dropdown-menu {
+      background: var(--qb-glass); color: #fff;
+      border: 1px solid var(--qb-border); border-radius: 1.5rem;
+      backdrop-filter: blur(22px) saturate(140%); -webkit-backdrop-filter: blur(22px) saturate(140%);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, .35), inset 0 1px 0 rgba(255,255,255,.12);
+    }
+    .card.shadow-sm { box-shadow: 0 10px 40px rgba(0, 0, 0, .35), inset 0 1px 0 rgba(255,255,255,.12) !important; }
+
+    /* forms */
+    .form-control, .form-select {
+      background-color: rgba(0, 0, 0, .35); color: #fff;
+      border: 1px solid var(--qb-border); border-radius: .9rem;
+    }
+    .form-control::placeholder { color: rgba(255,255,255,.45); }
+    .form-control:focus, .form-select:focus {
+      background-color: rgba(0, 0, 0, .5); color: #fff;
+      border-color: var(--qb-red); box-shadow: 0 0 0 .2rem rgba(225, 29, 46, .3);
+    }
+    .form-select option { background: #1a0a0c; color: #fff; }
+    .form-label { color: rgba(255,255,255,.8); font-size: .9rem; }
+
+    /* buttons */
+    .btn { border-radius: 999px; font-weight: 500; }
+    .btn-primary { background: linear-gradient(135deg, #ff3b4a, var(--qb-red) 55%, #a3101d); border: 0; box-shadow: 0 6px 20px rgba(225, 29, 46, .4); }
+    .btn-primary:hover, .btn-primary:focus { background: linear-gradient(135deg, #ff5461, #ee2333 55%, #b8121f); box-shadow: 0 8px 26px rgba(225, 29, 46, .55); }
+    .btn-secondary { background: var(--qb-glass); border: 1px solid var(--qb-border); color: #fff; }
+    .btn-secondary:hover { background: rgba(255,255,255,.16); border-color: var(--qb-border); color: #fff; }
+    .btn-outline-primary { --bs-btn-color: #ff8a93; --bs-btn-border-color: rgba(255,107,118,.5);
+      --bs-btn-hover-bg: var(--qb-red); --bs-btn-hover-border-color: var(--qb-red); --bs-btn-hover-color: #fff;
+      --bs-btn-active-bg: var(--qb-red); --bs-btn-active-border-color: var(--qb-red); }
+
+    /* tables */
+    .table { --bs-table-bg: transparent; --bs-table-color: #fff; --bs-table-border-color: var(--qb-border);
+      --bs-table-hover-bg: rgba(255,255,255,.06); --bs-table-hover-color: #fff; }
+    .table thead th { color: rgba(255,255,255,.6); font-weight: 500; font-size: .8rem; text-transform: uppercase; letter-spacing: .06em; }
+    .table-responsive { border-radius: 1.5rem; }
+
+    /* badges, alerts, pagination */
+    .badge.text-bg-success { background: rgba(255,255,255,.16) !important; color: #fff !important; border: 1px solid rgba(255,255,255,.3); }
+    .badge.text-bg-secondary { background: rgba(0,0,0,.4) !important; color: rgba(255,255,255,.6) !important; border: 1px solid var(--qb-border); }
+    .alert { background: var(--qb-glass-strong); color: #fff; border: 1px solid var(--qb-border); border-radius: 1rem; backdrop-filter: blur(14px); }
+    .alert-danger { border-color: rgba(255, 90, 100, .6); }
+    .btn-close { filter: invert(1); }
+    .page-link { background: var(--qb-glass); color: #fff; border-color: var(--qb-border); }
+    .page-item.active .page-link { background: var(--qb-red); border-color: var(--qb-red); }
+    .page-item.disabled .page-link { background: transparent; color: rgba(255,255,255,.35); }
+    code { color: #ff8a93; }
+
+    /* stat tiles + event cards */
+    .stat-icon { display: grid; place-items: center; width: 3.25rem; height: 3.25rem; border-radius: 1rem;
+      background: rgba(225, 29, 46, .25); color: #ff8a93; font-size: 1.5rem; }
+    .event-card { transition: transform .2s, box-shadow .2s; }
+    .event-card:hover { transform: translateY(-4px); }
+    .event-date { display: inline-block; padding: .25rem .75rem; border-radius: 999px; font-size: .75rem;
+      background: rgba(0,0,0,.35); border: 1px solid var(--qb-border); }
+    .seat-bar { height: 6px; border-radius: 99px; background: rgba(255,255,255,.14); overflow: hidden; }
+    .seat-bar > span { display: block; height: 100%; border-radius: 99px; background: linear-gradient(90deg, #ff5461, var(--qb-red)); }
+    .hero-card { max-width: 26rem; margin: 2rem auto; padding: 2.25rem; min-height: 30rem; display: flex; flex-direction: column; justify-content: space-between; }
+    .hero-card h1 { font-size: 2.6rem; line-height: 1.05; }
+
+    .tree ul { list-style: none; padding-left: 1.25rem; border-left: 2px solid var(--qb-border); margin-left: .5rem; }
     .tree li { margin: .35rem 0; }
   </style>
 </head>
-<body class="bg-light">
-<nav class="navbar navbar-expand-md navbar-dark bg-dark mb-4">
+<body>
+<nav class="navbar navbar-expand-md navbar-dark mb-4">
   <div class="container">
     <a class="navbar-brand" href="{% url 'dashboard:home' %}">QuickBook</a>
     {% if user.is_authenticated and user.is_staff %}
