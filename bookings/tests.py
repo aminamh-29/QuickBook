@@ -23,7 +23,7 @@ class BookingTestBase(TransactionTestCase):
         cache.clear()
         self.vendor = Vendor.objects.create(name="V", contact_email="v@example.com")
         self.event = Event.objects.create(
-            vendor=self.vendor, title="Concert", location="Hall",
+            vendor=self.vendor, title="Concert", location="Ernakulam",
             start_time=timezone.now() + timedelta(days=5),
             price=Decimal("10.00"), total_seats=10, available_seats=10,
         )
@@ -155,3 +155,13 @@ class BookingApiTests(BookingTestBase):
         self.assertEqual(r.json()["count"], 1)
         r = self.client.get("/api/events/", {"min_price": "50"})
         self.assertEqual(r.json()["count"], 0)
+
+    def test_event_location_filter(self):
+        self.auth(self.user)
+        r = self.client.get("/api/events/", {"location": "Ernakulam"})
+        self.assertEqual(r.json()["count"], 1)
+        r = self.client.get("/api/events/", {"location": "Kannur"})
+        self.assertEqual(r.json()["count"], 0)
+        # Only Kerala districts are accepted
+        r = self.client.get("/api/events/", {"location": "Mumbai"})
+        self.assertEqual(r.status_code, 400)

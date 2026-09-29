@@ -6,11 +6,17 @@
   <a class="btn btn-primary" href="{% url 'dashboard:event_add' %}"><i class="bi bi-plus-lg"></i> Add Event</a>
 </div>
 <form class="row g-2 mb-3" method="get">
-  <div class="col-12 col-md-4"><input class="form-control" name="q" value="{{ q }}" placeholder="Search title, location, vendor"></div>
+  <div class="col-12 col-md-3"><input class="form-control" name="q" value="{{ q }}" placeholder="Search title, location, vendor"></div>
   <div class="col-6 col-md-3">
     <select class="form-select" name="vendor">
       <option value="">All vendors</option>
       {% for v in vendors %}<option value="{{ v.pk }}" {% if vendor_id == v.pk|stringformat:"s" %}selected{% endif %}>{{ v.name }}</option>{% endfor %}
+    </select>
+  </div>
+  <div class="col-6 col-md-3">
+    <select class="form-select" name="location">
+      <option value="">All locations</option>
+      {% for value, label in locations %}<option value="{{ value }}" {% if location == value %}selected{% endif %}>{{ label }}</option>{% endfor %}
     </select>
   </div>
   <div class="col-6 col-md-3">

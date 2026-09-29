@@ -51,7 +51,7 @@ class DashboardAccessTests(TestCase):
     def test_home_counts(self):
         vendor = Vendor.objects.create(name="V", contact_email="v@example.com")
         Event.objects.create(
-            vendor=vendor, title="E", location="L",
+            vendor=vendor, title="E", location="Kollam",
             start_time=timezone.now() + timedelta(days=1),
             price=1, total_seats=5, available_seats=5,
         )
@@ -72,11 +72,30 @@ class DashboardManagementTests(TestCase):
     def event_payload(self, **over):
         data = {
             "vendor": self.vendor.pk, "title": "Show", "description": "",
-            "location": "Hall", "start_time": (timezone.now() + timedelta(days=3)).strftime("%Y-%m-%dT%H:%M"),
+            "location": "Ernakulam", "start_time": (timezone.now() + timedelta(days=3)).strftime("%Y-%m-%dT%H:%M"),
             "price": "12.50", "total_seats": 10, "is_active": "on",
         }
         data.update(over)
         return data
+
+    def test_event_location_must_be_a_kerala_district(self):
+        url = reverse("dashboard:event_add")
+        r = self.client.post(url, self.event_payload(location="Mumbai"))
+        self.assertEqual(r.status_code, 200)  # form redisplayed with an error
+        self.assertFalse(Event.objects.exists())
+        r = self.client.post(url, self.event_payload(location="Kannur"))
+        self.assertRedirects(r, reverse("dashboard:event_list"))
+        self.assertEqual(Event.objects.get().location, "Kannur")
+
+    def test_event_list_location_filter(self):
+        for loc in ("Kannur", "Kannur", "Wayanad"):
+            Event.objects.create(
+                vendor=self.vendor, title="E", location=loc,
+                start_time=timezone.now() + timedelta(days=1),
+                price=Decimal("5"), total_seats=5, available_seats=5,
+            )
+        r = self.client.get(reverse("dashboard:event_list"), {"location": "Kannur"})
+        self.assertEqual(r.context["paginator"].count, 2)
 
     def test_vendor_create_and_update(self):
         r = self.client.post(reverse("dashboard:vendor_add"), {
@@ -117,7 +136,7 @@ class DashboardManagementTests(TestCase):
         other = Vendor.objects.create(name="Other", contact_email="o@example.com")
         for i in range(12):
             Event.objects.create(
-                vendor=self.vendor if i % 2 else other, title=f"Party {i}", location="Hall",
+                vendor=self.vendor if i % 2 else other, title=f"Party {i}", location="Ernakulam",
                 start_time=timezone.now() + timedelta(days=i + 1),
                 price=Decimal("5"), total_seats=5, available_seats=5,
             )

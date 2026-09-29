@@ -9,7 +9,7 @@ from django.utils import timezone
 from django.views.generic import CreateView, DetailView, ListView, TemplateView, UpdateView
 
 from bookings.models import Booking
-from events.models import Event, Vendor
+from events.models import Event, Location, Vendor
 from referrals import services as referral_services
 
 from .forms import EventForm, StaffAuthenticationForm, VendorForm
@@ -90,6 +90,8 @@ class VendorListView(StaffRequiredMixin, SearchListMixin, ListView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx["status"] = self.request.GET.get("status", "")
+        ctx["locations"] = Location.choices
+        ctx["location"] = self.request.GET.get("location", "")
         return ctx
 
 
@@ -130,6 +132,8 @@ class EventListView(StaffRequiredMixin, SearchListMixin, ListView):
         params = self.request.GET
         if params.get("vendor", "").isdigit():
             qs = qs.filter(vendor_id=params["vendor"])
+        if params.get("location") in Location.values:
+            qs = qs.filter(location=params["location"])
         status = params.get("status")
         now = timezone.now()
         if status == "active":

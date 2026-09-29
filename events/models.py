@@ -20,13 +20,32 @@ class Vendor(models.Model):
         return self.name
 
 
+class Location(models.TextChoices):
+    """Kerala districts. The stored value is the district name."""
+
+    THIRUVANANTHAPURAM = "Thiruvananthapuram", "Thiruvananthapuram"
+    KOLLAM = "Kollam", "Kollam"
+    PATHANAMTHITTA = "Pathanamthitta", "Pathanamthitta"
+    ALAPPUZHA = "Alappuzha", "Alappuzha"
+    KOTTAYAM = "Kottayam", "Kottayam"
+    IDUKKI = "Idukki", "Idukki"
+    ERNAKULAM = "Ernakulam", "Ernakulam"
+    THRISSUR = "Thrissur", "Thrissur"
+    PALAKKAD = "Palakkad", "Palakkad"
+    MALAPPURAM = "Malappuram", "Malappuram"
+    KOZHIKODE = "Kozhikode", "Kozhikode"
+    WAYANAD = "Wayanad", "Wayanad"
+    KANNUR = "Kannur", "Kannur"
+    KASARAGOD = "Kasaragod", "Kasaragod"
+
+
 class Event(models.Model):
     vendor = models.ForeignKey(
         Vendor, on_delete=models.PROTECT, related_name="events"
     )
     title = models.CharField(max_length=200)
     description = models.TextField(blank=True)
-    location = models.CharField(max_length=255)
+    location = models.CharField(max_length=255, choices=Location.choices)
     start_time = models.DateTimeField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
     total_seats = models.PositiveIntegerField()
