@@ -20,6 +20,11 @@ User = get_user_model()
 
 DEMO_PASSWORD = "Demo@12345"
 
+# Staff login for the dashboard. Demo-only credentials.
+ADMIN_USERNAME = "admin"
+ADMIN_EMAIL = "admin@example.com"
+ADMIN_PASSWORD = "Admin@12345"
+
 VENDORS = [
     ("Sunset Live Events", "hello@sunsetlive.example", "555-0101", "12 Harbor Rd"),
     ("City Arts Collective", "info@cityarts.example", "555-0102", "40 Gallery St"),
@@ -98,9 +103,16 @@ class Command(BaseCommand):
         if not Booking.objects.exists():
             self._create_bookings(users, events)
 
+        # Only created when missing, so an existing admin's password is never changed.
+        if not User.objects.filter(username=ADMIN_USERNAME).exists():
+            User.objects.create_superuser(
+                username=ADMIN_USERNAME, email=ADMIN_EMAIL, password=ADMIN_PASSWORD
+            )
+
         self.stdout.write(self.style.SUCCESS(
             f"Demo data ready: {len(users)} customers, {len(vendors)} vendors, "
-            f"{len(events)} events. Customer password: {DEMO_PASSWORD}"
+            f"{len(events)} events. Customer password: {DEMO_PASSWORD}. "
+            f"Dashboard login: {ADMIN_USERNAME} / {ADMIN_PASSWORD}"
         ))
 
     @staticmethod

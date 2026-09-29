@@ -59,7 +59,7 @@ If you want some data to play with, run this after migrating:
 python manage.py seed_demo
 ```
 
-It creates 8 customers in two referral trees (`alice` is the root of the bigger one), 3 vendors, 6 events in different districts of Kerala, and a few bookings. One event is sold out and one booking is cancelled. All the demo customers use the password `Demo@12345` with their username. You can run it more than once without getting duplicates.
+It creates 8 customers in two referral trees (`alice` is the root of the bigger one), 3 vendors, 6 events in different districts of Kerala, and a few bookings. One event is sold out and one booking is cancelled. All the demo customers use the password `Demo@12345` with their username. It also creates a staff user for the dashboard if one called `admin` doesn't exist yet: username `admin`, password `Admin@12345`. These are demo credentials for local use only. You can run it more than once without getting duplicates.
 
 ## API endpoints
 

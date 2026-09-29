@@ -1,3 +1,4 @@
+from django.contrib.auth import get_user_model
 from django.core.management import call_command
 from django.test import TestCase
 
@@ -19,3 +20,14 @@ class SeedDemoTests(TestCase):
                 b.quantity for b in event.bookings.filter(status="confirmed")
             )
             self.assertEqual(event.total_seats - event.available_seats, booked)
+
+    def test_seed_demo_creates_staff_login(self):
+        call_command("seed_demo", verbosity=0)
+        call_command("seed_demo", verbosity=0)
+
+        User = get_user_model()
+        self.assertEqual(User.objects.filter(username="admin").count(), 1)
+        self.assertTrue(
+            self.client.login(username="admin", password="Admin@12345")
+        )
+        self.assertEqual(self.client.get("/dashboard/").status_code, 200)
