@@ -30,6 +30,17 @@ python manage.py runserver
 
 `createsuperuser` sets `is_staff=True`, which is what the dashboard checks.
 
+### Demo data (optional)
+
+```bash
+python manage.py seed_demo
+```
+
+Creates 8 customers in two referral trees (`alice` is the root of the larger
+one), 3 vendors, 6 events across Kerala districts and a few bookings,
+including a sold-out event and a cancelled booking. Customers log in with their
+username and the password `Demo@12345`. Safe to run more than once.
+
 ## Where things are
 
 | What | URL |
