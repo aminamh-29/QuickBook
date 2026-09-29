@@ -1,0 +1,62 @@
+{% extends "dashboard/base.html" %}
+{% block title %}{{ customer.username }}{% endblock %}
+{% block content %}
+<a href="{% url 'dashboard:user_list' %}" class="text-decoration-none">&larr; Users</a>
+<h1 class="h3 my-3">{{ customer.username }}</h1>
+<div class="row g-3">
+  <div class="col-12 col-lg-5">
+    <div class="card shadow-sm mb-3"><div class="card-header">Information</div>
+      <ul class="list-group list-group-flush">
+        <li class="list-group-item"><strong>Email:</strong> {{ customer.email }}</li>
+        <li class="list-group-item"><strong>Phone:</strong> {{ customer.phone|default:"—" }}</li>
+        <li class="list-group-item"><strong>Joined:</strong> {{ customer.date_joined|date:"Y-m-d H:i" }}</li>
+        <li class="list-group-item"><strong>Active:</strong> {{ customer.is_active|yesno:"Yes,No" }}</li>
+        <li class="list-group-item"><strong>Referral code:</strong> <code>{{ customer.referral_code }}</code></li>
+        <li class="list-group-item"><strong>Referred by:</strong>
+          {% if customer.referrer %}<a href="{% url 'dashboard:user_detail' customer.referrer.pk %}">{{ customer.referrer.username }}</a>{% else %}—{% endif %}</li>
+        <li class="list-group-item"><strong>Placed under:</strong>
+          {% if customer.parent %}<a href="{% url 'dashboard:user_detail' customer.parent.pk %}">{{ customer.parent.username }}</a> ({{ customer.position }}){% else %}— (tree root){% endif %}</li>
+        <li class="list-group-item"><strong>Tree root:</strong>
+          <a href="{% url 'dashboard:user_detail' root.pk %}">{{ root.username }}</a></li>
+        <li class="list-group-item"><strong>Left team:</strong> {{ stats.left_count }} · <strong>Right team:</strong> {{ stats.right_count }}</li>
+      </ul>
+    </div>
+    <div class="card shadow-sm"><div class="card-header">Recent bookings</div>
+      <ul class="list-group list-group-flush">
+        {% for b in bookings %}
+          <li class="list-group-item d-flex justify-content-between">
+            <span>{{ b.event.title }} &times; {{ b.quantity }}</span>
+            <span class="badge text-bg-{% if b.status == 'confirmed' %}success{% else %}secondary{% endif %}">{{ b.status }}</span>
+          </li>
+        {% empty %}<li class="list-group-item text-muted">No bookings.</li>{% endfor %}
+      </ul>
+    </div>
+  </div>
+  <div class="col-12 col-lg-7">
+    <div class="card shadow-sm"><div class="card-header">Referral tree</div>
+      <div class="card-body">
+        <form class="row g-2 mb-3" method="get">
+          <div class="col-8"><input class="form-control" name="q" value="{{ q }}" placeholder="Search this tree by username, email, code"></div>
+          <div class="col-2"><select class="form-select" name="depth" title="Depth">
+            {% for d in depth_options %}<option value="{{ d }}" {% if d == depth %}selected{% endif %}>{{ d }}</option>{% endfor %}</select></div>
+          <div class="col-2"><button class="btn btn-secondary w-100">Go</button></div>
+        </form>
+        {% if q %}
+          <h2 class="h6">Matches for "{{ q }}"</h2>
+          <ul class="list-group mb-3">
+            {% for u, d in matches %}
+              <li class="list-group-item d-flex justify-content-between">
+                <a href="{% url 'dashboard:user_detail' u.pk %}">{{ u.username }}</a>
+                <span class="text-muted small">level {{ d }} · {{ u.position }} · {{ u.email }}</span>
+              </li>
+            {% empty %}<li class="list-group-item text-muted">No matching users in this tree.</li>{% endfor %}
+          </ul>
+        {% endif %}
+        <div class="tree overflow-auto">
+          <ul class="ps-0 border-0 ms-0">{% include "dashboard/_tree_node.html" with node=tree %}</ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

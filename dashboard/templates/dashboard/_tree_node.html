@@ -1,0 +1,11 @@
+<li>
+  <a href="{% url 'dashboard:user_detail' node.id %}"><strong>{{ node.username }}</strong></a>
+  <code class="small">{{ node.referral_code }}</code>
+  {% if node.position %}<span class="badge text-bg-light border">{{ node.position }}</span>{% endif %}
+  {% if node.left or node.right %}
+  <ul>
+    {% if node.left %}{% include "dashboard/_tree_node.html" with node=node.left %}{% endif %}
+    {% if node.right %}{% include "dashboard/_tree_node.html" with node=node.right %}{% endif %}
+  </ul>
+  {% endif %}
+</li>

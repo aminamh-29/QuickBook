@@ -1,0 +1,23 @@
+{% extends "dashboard/base.html" %}
+{% block title %}Users{% endblock %}
+{% block content %}
+<h1 class="h3 mb-3">Users</h1>
+<form class="row g-2 mb-3" method="get">
+  <div class="col-9 col-md-6"><input class="form-control" name="q" value="{{ q }}" placeholder="Search username, email, phone, referral code"></div>
+  <div class="col-3 col-md-2"><button class="btn btn-secondary w-100">Search</button></div>
+</form>
+<div class="card shadow-sm"><div class="table-responsive">
+<table class="table table-hover mb-0 align-middle">
+  <thead><tr><th>Username</th><th>Email</th><th>Referral code</th><th>Bookings</th><th>Joined</th><th></th></tr></thead>
+  <tbody>
+  {% for u in users %}
+    <tr>
+      <td>{{ u.username }}</td><td>{{ u.email }}</td><td><code>{{ u.referral_code }}</code></td>
+      <td>{{ u.booking_count }}</td><td>{{ u.date_joined|date:"Y-m-d" }}</td>
+      <td class="text-end"><a class="btn btn-sm btn-outline-primary" href="{% url 'dashboard:user_detail' u.pk %}">View</a></td>
+    </tr>
+  {% empty %}<tr><td colspan="6" class="text-center text-muted py-4">No users found.</td></tr>{% endfor %}
+  </tbody>
+</table></div></div>
+<div class="mt-3">{% include "dashboard/_pagination.html" %}</div>
+{% endblock %}
