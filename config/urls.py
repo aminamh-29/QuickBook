@@ -1,10 +1,10 @@
 """Root URL configuration."""
 from django.urls import include, path
-from django.views.generic import RedirectView
+from django.views.generic import TemplateView
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
 urlpatterns = [
-    path("", RedirectView.as_view(url="/dashboard/", permanent=False)),
+    path("", TemplateView.as_view(template_name="dashboard/landing.html"), name="landing"),
     # REST API
     path("api/auth/", include("accounts.urls")),
     path("api/referrals/", include("referrals.urls")),

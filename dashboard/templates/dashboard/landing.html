@@ -1,0 +1,29 @@
+{% extends "dashboard/base.html" %}
+{% load static %}
+{% block title %}Welcome{% endblock %}
+{% block content %}
+<section class="landing" style="--landing-img: url('{% static 'dashboard/img/venue-hero.jpg' %}');">
+  <div class="landing-inner">
+    <span class="landing-eyebrow">Event booking</span>
+    <h1>Book the night.<br>Run the room.</h1>
+    <p class="landing-sub">QuickBook brings your venues, events, bookings and referral network into one place.</p>
+    <a class="btn btn-primary btn-lg px-5" href="{% url 'dashboard:home' %}">
+      <i class="bi bi-speedometer2 me-2"></i>Dashboard
+    </a>
+  </div>
+</section>
+<style>
+  .landing {
+    position: relative; overflow: hidden; border-radius: 1.5rem; border: 1px solid var(--qb-border);
+    min-height: 34rem; display: flex; align-items: flex-end;
+    background:
+      linear-gradient(180deg, rgba(11,5,6,.25) 0%, rgba(11,5,6,.55) 55%, rgba(11,5,6,.92) 100%),
+      var(--landing-img) center / cover no-repeat;
+    box-shadow: 0 10px 40px rgba(0,0,0,.45);
+  }
+  .landing-inner { padding: 2.5rem; max-width: 36rem; }
+  .landing-eyebrow { color: #ff8a93; font-size: .85rem; letter-spacing: .12em; text-transform: uppercase; }
+  .landing h1 { font-size: clamp(2.2rem, 6vw, 3.4rem); line-height: 1.05; margin: .5rem 0 1rem; }
+  .landing-sub { color: rgba(255,255,255,.75); margin-bottom: 1.5rem; }
+</style>
+{% endblock %}
