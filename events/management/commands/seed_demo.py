@@ -1,13 +1,15 @@
 """Populate the database with demo customers, vendors, events and bookings.
 
 Safe to run repeatedly: existing demo rows are reused, and bookings are only
-created when there are none yet. Data goes through the same service functions
-the API uses, so seat counts and referral placement stay consistent.
+created when there are none yet. Admin credentials are read from environment
+variables and the admin account is created or updated when the command runs.
 """
+
+import os
 from datetime import timedelta
 
 from django.contrib.auth import get_user_model
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 from django.utils import timezone
 
@@ -20,10 +22,10 @@ User = get_user_model()
 
 DEMO_PASSWORD = "Demo@12345"
 
-# Staff login for the dashboard. Demo-only credentials.
-ADMIN_USERNAME = "admin"
-ADMIN_EMAIL = "admin@example.com"
-ADMIN_PASSWORD = "Admin@12345"
+# Configure these in Render Environment Variables.
+ADMIN_USERNAME = os.environ.get("ADMIN_USERNAME", "admin")
+ADMIN_EMAIL = os.environ.get("ADMIN_EMAIL", "admin@example.com")
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD")
 
 VENDORS = [
     ("Sunset Live Events", "hello@sunsetlive.example", "555-0101", "12 Harbor Rd"),
@@ -59,11 +61,21 @@ class Command(BaseCommand):
 
     @transaction.atomic
     def handle(self, *args, **options):
+        if not ADMIN_PASSWORD:
+            raise CommandError(
+                "Set the ADMIN_PASSWORD environment variable before running "
+                "seed_demo. Configure it in Render Environment Variables."
+            )
+
         vendors = {}
         for name, email, phone, address in VENDORS:
             vendors[name], _ = Vendor.objects.get_or_create(
                 name=name,
-                defaults={"contact_email": email, "phone": phone, "address": address},
+                defaults={
+                    "contact_email": email,
+                    "phone": phone,
+                    "address": address,
+                },
             )
 
         now = timezone.now()
@@ -85,6 +97,7 @@ class Command(BaseCommand):
         users = {}
         for username, phone, referrer_name in CUSTOMERS:
             user = User.objects.filter(username=username).first()
+
             if user is None:
                 referrer = (
                     get_referrer_by_code(users[referrer_name].referral_code)
@@ -98,35 +111,55 @@ class Command(BaseCommand):
                     phone=phone,
                     password=DEMO_PASSWORD,
                 )
+
             users[username] = user
 
         if not Booking.objects.exists():
             self._create_bookings(users, events)
 
-        # Only created when missing, so an existing admin's password is never changed.
-        if not User.objects.filter(username=ADMIN_USERNAME).exists():
+        # Create the administrator or update the existing account.
+        admin_user = User.objects.filter(username=ADMIN_USERNAME).first()
+
+        if admin_user is None:
             User.objects.create_superuser(
-                username=ADMIN_USERNAME, email=ADMIN_EMAIL, password=ADMIN_PASSWORD
+                username=ADMIN_USERNAME,
+                email=ADMIN_EMAIL,
+                password=ADMIN_PASSWORD,
+            )
+            self.stdout.write(self.style.SUCCESS("Dashboard administrator created."))
+        else:
+            admin_user.email = ADMIN_EMAIL
+            admin_user.is_staff = True
+            admin_user.is_superuser = True
+            admin_user.set_password(ADMIN_PASSWORD)
+            admin_user.save()
+            self.stdout.write(
+                self.style.SUCCESS("Dashboard administrator credentials updated.")
             )
 
-        self.stdout.write(self.style.SUCCESS(
-            f"Demo data ready: {len(users)} customers, {len(vendors)} vendors, "
-            f"{len(events)} events. Customer password: {DEMO_PASSWORD}. "
-            f"Dashboard login: {ADMIN_USERNAME} / {ADMIN_PASSWORD}"
-        ))
+        self.stdout.write(
+            self.style.SUCCESS(
+                f"Demo data ready: {len(users)} customers, "
+                f"{len(vendors)} vendors, {len(events)} events. "
+                f"Dashboard username: {ADMIN_USERNAME}"
+            )
+        )
 
     @staticmethod
     def _create_bookings(users, events):
         def book(username, title, quantity):
             return book_tickets(
-                user=users[username], event_id=events[title].id, quantity=quantity
+                user=users[username],
+                event_id=events[title].id,
+                quantity=quantity,
             )
 
         book("alice", "Rock Night", 2)
         book("alice", "Django Developers Summit", 1)
         book("bob", "Jazz Under the Stars", 4)
         book("carol", "Modern Art Expo", 3)
-        book("dave", "Stand-up Comedy Night", 5)  # sells the event out
+        book("dave", "Stand-up Comedy Night", 5)
+
         cancelled = book("erin", "AI Workshop", 2)
         cancel_booking(user=users["erin"], booking_id=cancelled.id)
         book("heidi", "Rock Night", 1)
