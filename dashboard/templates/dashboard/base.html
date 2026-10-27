@@ -114,14 +114,15 @@
 <body>
 <nav class="navbar navbar-expand-md navbar-dark mb-4">
   <div class="container">
-    <a class="navbar-brand" href="{% url 'dashboard:home' %}">QuickBook</a>
+    <a class="navbar-brand" href="{% url 'landing' %}">QuickBook</a>
     {% if user.is_authenticated and user.is_staff %}
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav">
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="nav">
       <ul class="navbar-nav me-auto">
-        <li class="nav-item"><a class="nav-link" href="{% url 'dashboard:home' %}">Home</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'landing' %}">Home</a></li>
+        <li class="nav-item"><a class="nav-link" href="{% url 'dashboard:home' %}">Dashboard</a></li>
         <li class="nav-item"><a class="nav-link" href="{% url 'dashboard:vendor_list' %}">Vendors</a></li>
         <li class="nav-item"><a class="nav-link" href="{% url 'dashboard:event_list' %}">Events</a></li>
         <li class="nav-item"><a class="nav-link" href="{% url 'dashboard:user_list' %}">Users</a></li>
