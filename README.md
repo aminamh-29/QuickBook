@@ -156,7 +156,6 @@ CSRF_TRUSTED_ORIGINS=http://localhost:8000,http://127.0.0.1:8000
 SECURE_SSL_REDIRECT=False
 ```
 
-Do not commit `.env` files.
 
 ## Security notes
 
@@ -181,13 +180,5 @@ Do not commit `.env` files.
 - stronger referral reporting
 - improved frontend UX
 
-## Portfolio value
 
-This project is a strong example for:
 
-- Python Developer
-- Backend Developer
-- Django Developer
-- Full Stack Developer
-
-It demonstrates practical Django architecture, business logic, authentication, API development, and staff dashboard management.
