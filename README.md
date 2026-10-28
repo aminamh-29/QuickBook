@@ -104,8 +104,24 @@ QuickBook/
 └── staticfiles/
 ```
 Website Sections
-Homepage
+HOMEPAGE
 <img width="1799" height="951" alt="image" src="https://github.com/user-attachments/assets/93f1d4f3-9748-4a5a-87a7-5abb7ecd2503" />
+ADMIN LOGIN
+<img width="1906" height="956" alt="image" src="https://github.com/user-attachments/assets/f736e917-671e-40a0-a0da-32ed2762d9b8" />
+
+
+DASHOBOARD
+<img width="1919" height="813" alt="image" src="https://github.com/user-attachments/assets/15b565b9-94d0-4fb4-8bee-aebb7a7bdb91" />
+VENDORS
+<img width="1886" height="852" alt="image" src="https://github.com/user-attachments/assets/fa6f5e71-7039-48a6-80ab-58e06caef478" />
+
+EVENTS
+<img width="1787" height="927" alt="image" src="https://github.com/user-attachments/assets/3d876385-04f5-46dc-818c-38391816f41c" />
+
+USERS
+<img width="1919" height="1012" alt="image" src="https://github.com/user-attachments/assets/c5aa3f3c-78ac-4320-bafc-c6a90caef1f0" />
+
+
 
 ## API overview
 
