@@ -103,6 +103,9 @@ QuickBook/
 ├── db.sqlite3
 └── staticfiles/
 ```
+Website Sections
+Homepage
+<img width="1799" height="951" alt="image" src="https://github.com/user-attachments/assets/93f1d4f3-9748-4a5a-87a7-5abb7ecd2503" />
 
 ## API overview
 
