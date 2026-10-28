@@ -1,43 +1,67 @@
 # QuickBook
 
-This is the backend for an event booking app. Users can browse events, book tickets and cancel them. There is also a referral system where each user gets placed in a binary tree under the person who referred them, and a small dashboard for staff.
+A Django-based event booking platform with referral-based user growth and a staff dashboard.
 
-The API is built with Django REST Framework and uses token authentication. The staff dashboard is made with normal Django views, templates and Bootstrap 5. I did not use the Django admin.
+The API is built with Django REST Framework and uses token authentication. The staff dashboard is made with normal Django views, templates, and Bootstrap 5. I did not use the Django admin.
 
 Made with Python 3.12+, Django 6.1, Django REST Framework, SQLite, drf-spectacular and django-filter.
+
+## Why this project exists
+
+QuickBook combines two important business features in one system:
+
+- event discovery and booking for end users
+- referral-based customer acquisition and tree tracking
+
+This makes it a practical backend project for demonstrating real-world logic, validation, and API design.
+
+## Main features
+
+- User registration and login
+- Token-based authentication
+- Referral codes and binary referral tree placement
+- Event listing with search and filtering
+- Ticket booking with seat validation
+- Booking cancellation and seat restoration
+- Staff dashboard for vendors, events, and users
+- Swagger API documentation
+- Demo data generation for local testing
 
 ## How to run it locally
 
 You need Python 3.12 or newer installed.
 
-1. Create a virtual environment and activate it
+### 1. Create a virtual environment and activate it
 
 ```bash
-python -m venv venv
-venv\Scripts\activate
+python -m venv .venv
+
+# macOS / Linux
+source .venv/bin/activate
+
+# Windows
+.\.venv\Scripts\Activate.ps1
 ```
 
-On macOS or Linux use `source venv/bin/activate` for the second line.
-
-2. Install the requirements
+### 2. Install the requirements
 
 ```bash
 pip install -r requirements.txt
 ```
 
-3. Create the database
+### 3. Create the database
 
 ```bash
 python manage.py migrate
 ```
 
-4. Create a staff user. You need this to log in to the dashboard, because the dashboard only allows users with `is_staff=True` and `createsuperuser` sets that.
+### 4. Create a staff user
 
 ```bash
 python manage.py createsuperuser
 ```
 
-5. Start the server
+### 5. Start the development server
 
 ```bash
 python manage.py runserver
@@ -45,79 +69,125 @@ python manage.py runserver
 
 Now open:
 
-- Swagger docs: http://127.0.0.1:8000/api/docs/
-- OpenAPI schema: http://127.0.0.1:8000/api/schema/
-- Staff dashboard: http://127.0.0.1:8000/dashboard/ (the login page is `/dashboard/login/`)
+- http://127.0.0.1:8000/
+- http://127.0.0.1:8000/dashboard/
+- http://127.0.0.1:8000/dashboard/login/
+- http://127.0.0.1:8000/api/docs/
+- http://127.0.0.1:8000/api/schema/
 
-If you are not logged in, the dashboard redirects you to the login page. If you are logged in but not staff, you get a 403.
+## Production / Render deployment
+
+The app is also deployed on Render:
+
+- https://quickbook-a90h.onrender.com/
+- https://quickbook-a90h.onrender.com/dashboard/
+- https://quickbook-a90h.onrender.com/api/docs/
+- https://quickbook-a90h.onrender.com/api/schema/
+
+## Project folder structure
+
+```text
+QuickBook/
+├── accounts/
+├── bookings/
+├── config/
+├── dashboard/
+├── events/
+├── referrals/
+├── .gitignore
+├── .env.example
+├── manage.py
+├── README.md
+├── requirements.txt
+├── render.yaml
+├── db.sqlite3
+└── staticfiles/
+```
+
+## API overview
+
+All protected API endpoints require an `Authorization: Token <token>` header.
+
+### Authentication
+- `POST /api/auth/register/`
+- `POST /api/auth/login/`
+- `POST /api/auth/logout/`
+
+### Events
+- `GET /api/events/`
+- `GET /api/events/<id>/`
+
+### Bookings
+- `GET /api/bookings/`
+- `POST /api/bookings/`
+- `POST /api/bookings/<id>/cancel/`
+
+### Referrals
+- `GET /api/referrals/<user_id>/tree/`
+- `GET /api/referrals/<user_id>/root/`
+- `GET /api/referrals/<user_id>/stats/`
 
 ## Demo data
 
-If you want some data to play with, run this after migrating:
+If you want some sample data to test the app:
 
 ```bash
 python manage.py seed_demo
 ```
 
-It creates 8 customers in two referral trees (`alice` is the root of the bigger one), 3 vendors, 6 events in different districts of Kerala, and a few bookings. One event is sold out and one booking is cancelled. All the demo customers use the password `Demo@12345` with their username. It also creates a staff user for the dashboard if one called `admin` doesn't exist yet: username `admin`, password `Admin@12345`. These are demo credentials for local use only. You can run it more than once without getting duplicates.
+This creates example vendors, events, bookings, and staff data.
 
-## API endpoints
-
-Every endpoint except register and login needs an `Authorization: Token <key>` header. You get the key when you log in.
-
-| Method | Endpoint | What it does |
-| --- | --- | --- |
-| POST | `/api/auth/register/` | Register a user (`referral_code` is optional) |
-| POST | `/api/auth/login/` | Log in and get a token |
-| POST | `/api/auth/logout/` | Log out, deletes the token |
-| GET | `/api/events/` | List events |
-| GET | `/api/events/<id>/` | Get one event |
-| POST | `/api/bookings/` | Book tickets, body like `{"event": 1, "quantity": 2}` |
-| GET | `/api/bookings/` | Your bookings |
-| POST | `/api/bookings/<id>/cancel/` | Cancel a booking |
-| GET | `/api/referrals/<user_id>/tree/` | Referral tree (`?depth=`, default 3, max 10) |
-| GET | `/api/referrals/<user_id>/root/` | Root user of the tree |
-| GET | `/api/referrals/<user_id>/stats/` | Left, right and total team count |
-
-The events list can be filtered with `?search=`, `?vendor=`, `?min_price=`, `?max_price=`, `?date_from=`, `?date_to=`, `?available=true` and `?ordering=`. The bookings list can be filtered with `?status=`.
-
-Errors look like `{"detail": "...", "code": "..."}`, except validation errors, which use the normal DRF format per field. Status codes: 400 bad input, 401 not logged in, 404 not found, 409 conflict (not enough seats or already cancelled), 429 too many requests.
-
-Example request:
-
-```bash
-curl -X POST http://127.0.0.1:8000/api/auth/register/ \
-  -H "Content-Type: application/json" \
-  -d '{"username":"alice","email":"alice@example.com","password":"Str0ng-pass!"}'
-```
-
-## Project folders
-
-```
-config/      settings, main urls, exception handler
-accounts/    custom user model and auth API
-events/      Vendor and Event models, event API
-bookings/    Booking model, booking API, seat logic in services.py
-referrals/   tree placement, tree/root/stats API
-dashboard/   staff dashboard (views, forms, templates)
-```
-
-The main logic is in the `services.py` file of each app. The views only check the input, call the service and return the response.
-
-## Some notes on how it works
-
-Overselling: booking and cancelling run inside `transaction.atomic()` and lock the event row using `select_for_update()`. SQLite ignores row locks but only allows one writer at a time, so it is still safe, and it will also work if you switch to PostgreSQL. I also added database constraints (`available_seats <= total_seats` and quantity at least 1) in case something goes wrong in the code.
-
-Referral tree: a new user goes into the first free spot found by searching level by level (BFS) from the referrer, left side first. There is a unique constraint on `(parent, position)` so a node can never get two children on the same side. If two signups clash, one of them is retried automatically. `referrer` (who invited the user) and `parent` (where the user sits in the tree) are saved separately.
-
-Rate limits: 100 requests per hour for anonymous users, 1000 per hour for logged in users, and 10 per minute for login and register.
-
-Vendors are just records that staff manage, they cannot log in. A vendor that has events cannot be deleted, you have to deactivate it.
-
-## Running the tests
+## Running tests
 
 ```bash
 python manage.py test
 ```
 
-The tests check seat counts, booking from multiple threads at the same time, invalid booking and cancel requests, referral placement (left, right and BFS order), the tree/root/stats endpoints and access to the dashboard.
+## Environment configuration
+
+Create a `.env` file locally and set your environment variables:
+
+```env
+DJANGO_SECRET_KEY=your-secret-key
+DEBUG=True
+ALLOWED_HOSTS=localhost,127.0.0.1
+DATABASE_URL=sqlite:////db.sqlite3
+CSRF_TRUSTED_ORIGINS=http://localhost:8000,http://127.0.0.1:8000
+SECURE_SSL_REDIRECT=False
+```
+
+Do not commit `.env` files.
+
+## Security notes
+
+- keep `DEBUG=False` in production
+- never expose secrets in the repository
+- restrict `ALLOWED_HOSTS`
+- use HTTPS on production deployments
+- store credentials in environment variables, not in code
+
+## Limitations
+
+- main focus is backend logic and API structure
+- no advanced payment gateway integration yet
+- no email verification or password reset flow
+- no full frontend app is included
+
+## Future improvements
+
+- payment integration
+- email verification
+- admin analytics dashboard
+- stronger referral reporting
+- improved frontend UX
+
+## Portfolio value
+
+This project is a strong example for:
+
+- Python Developer
+- Backend Developer
+- Django Developer
+- Full Stack Developer
+
+It demonstrates practical Django architecture, business logic, authentication, API development, and staff dashboard management.
